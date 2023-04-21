@@ -6,6 +6,7 @@ const btnClearCompleted = document.querySelector(".clear-completed");
 
 btnClearCompleted.addEventListener("click", clearCompleted);
 mainInput.addEventListener("keyup", createTask);
+window.addEventListener("load", loadTasks);
 
 const generateId = generator();
 
@@ -29,13 +30,21 @@ function hideMainFooter(){
     }
 }
 
-function createTask(event){
-    if(event.keyCode !== 13){
+function createTask(
+    event, 
+    { 
+        checkEvent = true,
+        task = undefined 
+    } = {})
+{
+    if(checkEvent && event.keyCode !== 13){
         console.log(event.keyCode);
         return;
     }
 
-    const task = mainInput.value.trim();
+    if(!task){
+        task = mainInput.value.trim();
+    }
 
     if(task == ""){
         console.log("La tarea no puede estar vacia");
@@ -62,6 +71,7 @@ function createTask(event){
 
     const newTaskButton = document.createElement("button");
     newTaskButton.classList.add("destroy");
+    newTaskButton.addEventListener("click", () => deleteTask(id));
 
     const newTaskInputEdit = document.createElement("input");
     newTaskInputEdit.classList.add("edit");
@@ -84,6 +94,7 @@ function createTask(event){
 
     toDoList.appendChild(newTaskLi);
     updateFooter();
+    updateLocalStorage();
 }
 
 function toggleCompleted(id){
@@ -122,6 +133,14 @@ function editTask(event, id, input, label){
     label.innerText = task;
     input.value = task;
     toggleEditing(id);
+    updateLocalStorage();
+}
+
+function deleteTask(id){
+    const task = document.getElementById("id" + id);
+    toDoList.removeChild(task);
+    updateFooter();
+    updateLocalStorage();
 }
 
 //------------------------------------//
@@ -135,7 +154,7 @@ function updateFooter(){
         span.innerHTML = "<strong>1</strong> item left";
     }
     else {
-        span.innerHTML = `<strong>${items}</strong> items left`
+        span.innerHTML = `<strong>${items}</strong> items left`;
     }
 }
 
@@ -144,5 +163,41 @@ function clearCompleted(){
     tasksCompleted = Object.values(tasksCompleted);
     tasksCompleted.forEach(task => {
         toDoList.removeChild(task);
+    });
+    updateFooter();
+    updateLocalStorage();
+}
+
+//-------------------------------------------//
+// Others
+//-------------------------------------------//
+
+function updateLocalStorage(){
+    const key = "mydayapp-js";
+    const views = document.getElementsByClassName("view");
+    const items = Object.values(views);
+
+    saveTasks = [];
+
+    items.forEach(item => {
+        const task = item.children[1].innerText;
+        saveTasks.push(task);
+    });
+
+    localStorage.setItem(key, JSON.stringify(saveTasks));
+}
+
+function loadTasks(){
+    const key = "mydayapp-js";
+    let tasks = localStorage.getItem(key);
+    tasks = JSON.parse(tasks);
+
+    if(tasks.length == 0){
+        console.log("no hay tareas");
+        return;
+    }
+
+    tasks.forEach(task => {
+        createTask(event, { checkEvent: false, task});
     });
 }
