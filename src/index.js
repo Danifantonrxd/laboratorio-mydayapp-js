@@ -3,6 +3,15 @@ const main = document.querySelector(".main");
 const footer = document.querySelector(".footer");
 const mainInput = document.querySelector(".new-todo");
 
+const generateId = generator();
+
+function* generator(){
+    let id = 0;
+    while(true){
+        yield id++;
+    }
+}
+
 function hideMainFooter(){
     const hasTasks = toDoList.innerHTML == "";
 
@@ -32,6 +41,8 @@ function createTask(event){
     mainInput.value = "";
 
     const newTaskLi = document.createElement("li");
+    const id = generateId.next().value;
+    newTaskLi.id = "id" + id;
 
     const newTaskDiv = document.createElement("div");
     newTaskDiv.classList.add("view");
@@ -39,9 +50,11 @@ function createTask(event){
     const newTaskInput = document.createElement("input");
     newTaskInput.classList.add("toggle");
     newTaskInput.type = "checkbox";
+    newTaskInput.addEventListener("click", () => toggleCompleted(id));
 
     const newTaskLabel = document.createElement("label");
     newTaskLabel.innerText = task;
+    newTaskLabel.addEventListener("dblclick", () => toggleEditing(id, newTaskInputEdit));
 
     const newTaskButton = document.createElement("button");
     newTaskButton.classList.add("destroy");
@@ -49,6 +62,10 @@ function createTask(event){
     const newTaskInputEdit = document.createElement("input");
     newTaskInputEdit.classList.add("edit");
     newTaskInputEdit.value = task;
+    newTaskInputEdit.addEventListener(
+        "keyup", 
+        (event) => editTask(event, id, newTaskInputEdit, newTaskLabel)
+    );
 
     newTaskDiv.append(
         newTaskInput,
@@ -65,3 +82,41 @@ function createTask(event){
 }
 
 mainInput.addEventListener("keyup", createTask);
+
+function toggleCompleted(id){
+    const task = document.getElementById("id" + id);
+    task.classList.toggle("completed")
+
+}
+
+function toggleEditing(id, input){
+    const task = document.getElementById("id" + id);
+    task.classList.toggle("editing");
+    if(task.classList.contains("editing")){
+        input.focus();
+    }
+}
+
+function editTask(event, id, input, label){
+    if(event.keyCode == 27){
+        input.value = label.innerText;
+        toggleEditing(id);
+        return;    
+    }
+    if(event.keyCode !== 13){
+        console.log("do nothing");
+        return;
+    }
+    
+    const task = input.value.trim();
+    if(task == ""){
+        console.log("La cadena no puede esta vacia");
+        input.value = label.innerText;
+        toggleEditing(id);
+        return;
+    }
+
+    label.innerText = task;
+    input.value = task;
+    toggleEditing(id);
+}
