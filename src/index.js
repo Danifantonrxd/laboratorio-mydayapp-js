@@ -2,6 +2,10 @@ const toDoList = document.querySelector(".todo-list");
 const main = document.querySelector(".main");
 const footer = document.querySelector(".footer");
 const mainInput = document.querySelector(".new-todo");
+const btnClearCompleted = document.querySelector(".clear-completed");
+
+btnClearCompleted.addEventListener("click", clearCompleted);
+mainInput.addEventListener("keyup", createTask);
 
 const generateId = generator();
 
@@ -79,9 +83,8 @@ function createTask(event){
     );
 
     toDoList.appendChild(newTaskLi);
+    updateFooter();
 }
-
-mainInput.addEventListener("keyup", createTask);
 
 function toggleCompleted(id){
     const task = document.getElementById("id" + id);
@@ -119,4 +122,27 @@ function editTask(event, id, input, label){
     label.innerText = task;
     input.value = task;
     toggleEditing(id);
+}
+
+//------------------------------------//
+// Footer
+//------------------------------------//
+
+function updateFooter(){
+    const items = toDoList.childElementCount;
+    const span = document.querySelector(".todo-count");
+    if(items == 1){
+        span.innerHTML = "<strong>1</strong> item left";
+    }
+    else {
+        span.innerHTML = `<strong>${items}</strong> items left`
+    }
+}
+
+function clearCompleted(){
+    let tasksCompleted = document.getElementsByClassName("completed");
+    tasksCompleted = Object.values(tasksCompleted);
+    tasksCompleted.forEach(task => {
+        toDoList.removeChild(task);
+    });
 }
