@@ -7,6 +7,7 @@ const btnClearCompleted = document.querySelector(".clear-completed");
 btnClearCompleted.addEventListener("click", clearCompleted);
 mainInput.addEventListener("keyup", createTask);
 window.addEventListener("load", loadTasks);
+window.addEventListener("hashchange", toggleModes);
 
 const generateId = generator();
 
@@ -18,7 +19,7 @@ function* generator(){
 }
 
 function hideMainFooter(){
-    const hasTasks = toDoList.innerHTML == "";
+    const hasTasks = toDoList.childElementCount;
 
     if(!hasTasks){
         main.classList.add("hidden");
@@ -93,6 +94,7 @@ function createTask(
     );
 
     toDoList.appendChild(newTaskLi);
+    hideMainFooter();
     updateFooter();
     updateLocalStorage();
 }
@@ -139,6 +141,7 @@ function editTask(event, id, input, label){
 function deleteTask(id){
     const task = document.getElementById("id" + id);
     toDoList.removeChild(task);
+    hideMainFooter();
     updateFooter();
     updateLocalStorage();
 }
@@ -164,6 +167,7 @@ function clearCompleted(){
     tasksCompleted.forEach(task => {
         toDoList.removeChild(task);
     });
+    hideMainFooter();
     updateFooter();
     updateLocalStorage();
 }
@@ -194,10 +198,73 @@ function loadTasks(){
 
     if(tasks.length == 0){
         console.log("no hay tareas");
+        hideMainFooter();
         return;
     }
 
     tasks.forEach(task => {
         createTask(event, { checkEvent: false, task});
     });
+
+    if(location.hash != "#"){
+        location.hash = "#";
+    }
+    hideMainFooter();
+}
+
+function toggleModes(){
+    const filters = document.querySelector(".filters").children;
+
+    let completed = document.getElementsByClassName("completed");
+    completed = Object.values(completed);
+
+    const pendingObj = toDoList.children;
+    const pending = [];
+
+    for(let i = 0; i < toDoList.childElementCount; i++){
+        const isCompleted = pendingObj[i].classList.contains("completed"); 
+        if(!isCompleted){
+            pending.push(pendingObj[i]);
+        }
+    }
+
+    if(location.hash == ""){
+        filters[0].children[0].classList.add("selected");
+        filters[1].children[0].classList.remove("selected");
+        filters[2].children[0].classList.remove("selected");
+
+        pending.forEach(item => {
+            item.classList.remove("hidden");
+        });
+
+        completed.forEach(item => {
+            item.classList.remove("hidden");
+        });
+    }
+    else if(location.hash == "#pending"){
+        filters[0].children[0].classList.remove("selected");
+        filters[1].children[0].classList.add("selected");
+        filters[2].children[0].classList.remove("selected");
+
+        pending.forEach(item => {
+            item.classList.remove("hidden");
+        });
+
+        completed.forEach(item => {
+            item.classList.add("hidden");
+        });
+    }
+    else if(location.hash == "#completed"){
+        filters[0].children[0].classList.remove("selected");
+        filters[1].children[0].classList.remove("selected");
+        filters[2].children[0].classList.add("selected");
+
+        pending.forEach(item => {
+            item.classList.add("hidden");
+        });
+
+        completed.forEach(item => {
+            item.classList.remove("hidden");
+        });
+    }
 }
